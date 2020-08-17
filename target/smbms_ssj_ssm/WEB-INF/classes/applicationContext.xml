@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    <!--开启注解扫描-->
+    <context:component-scan base-package="cn.kgc"/>
+    <!--引入配置文件-->
+    <context:property-placeholder location="classpath*:db.properties"/>
+    <!--配置数据源 c3p0-->
+    <bean class="com.mchange.v2.c3p0.ComboPooledDataSource" id="dataSource">
+        <property name="user" value="${mysql.username}"/>
+        <property name="jdbcUrl" value="${mysql.url}"/>
+        <property name="driverClass" value="${mysql.driver}"/>
+        <property name="password" value="${mysql.password}"/>
+    </bean>
+    <!--配置会话工厂-->
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactory">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="typeAliasesPackage" value="cn.kgc.smbms.pojo"/>
+        <property name="mapperLocations" value="classpath*:mappers/*Mapper.xml"/>
+        <property name="plugins">
+            <array>
+                <bean class="com.github.pagehelper.PageHelper">
+                    <property name="properties">
+                        <value>dialect=mysql</value>
+                    </property>
+                </bean>
+            </array>
+        </property>
+    </bean>
+    <!--扫描dao层-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="cn.kgc.smbms.dao"/>
+    </bean>
+    <!--事务管理器-->
+    <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="transactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+</beans>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.kgc.smbms.dao.BillMapper">
+    <insert id="insertBill">
+        insert into smbms_bill(billCode, productName, productUnit, productCount, totalPrice, isPayment,
+                                creationDate, providerId)
+        values (#{billCode},#{productName},#{productUnit},#{productCount},#{totalPrice},#{isPayment},now(),#{providerId})
+    </insert>
+    <update id="updateBillById">
+        update smbms_bill
+        set billCode=#{billCode},
+            productName=#{productName},
+            productUnit=#{productUnit},
+            productCount=#{productCount},
+            modifyDate=now(),
+            totalPrice=#{totalPrice},
+            providerId=#{providerId},
+            isPayment=#{isPayment}
+        where id=#{id}
+    </update>
+    <delete id="delBillById">
+        delete from smbms_bill where id=#{id}
+    </delete>
+
+    <select id="queryBillByName" resultType="cn.kgc.smbms.pojo.Bill">
+        select sb.id,
+        billCode,
+        productName,
+        totalPrice,
+        isPayment,
+        sb.creationDate,
+        sp.proName as providerName
+        from smbms_bill sb,
+        smbms_provider sp
+        where sb.providerId=sp.id
+        <if test="providerId!=null and providerId!=''">
+            and sp.id = #{providerId}
+        </if>
+        <if test="productName!=null and productName!=''">
+            and sb.productName like concat('%',#{productName},'%')
+        </if>
+        <if test="isPayment!=null and isPayment!=''">
+            and sb.isPayment=#{isPayment}
+        </if>
+    </select>
+    <select id="queryBillById" resultType="cn.kgc.smbms.pojo.Bill">
+        select sb.id,
+               billCode,
+               productName,
+               productDesc,
+               productUnit,
+               productCount,
+               totalPrice,
+               isPayment,
+                sb.creationDate,
+               providerId,
+               sp.proName as providerName
+        from smbms_bill sb,smbms_provider sp
+        where sb.providerId=sp.id
+        <if test="billId!=null and billId!=''">
+            and sb.id=#{billId}
+        </if>
+    </select>
+</mapper>

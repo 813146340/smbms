@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.kgc.smbms.dao.UserMapper">
+    <insert id="addUser">
+        insert into smbms_user(userCode, userName, userPassword, gender, birthday, phone, address, userRole, createdBy,
+                               creationDate)
+        values (#{userCode}, #{userName}, #{userPassword}, #{gender}, #{birthday}, #{phone}, #{address}, #{userRole},
+                #{createBy}, now())
+    </insert>
+    <update id="updateUser">
+        update smbms_user
+        set userName=#{userName},
+            gender=#{gender},
+            birthday=#{birthday},
+            phone=#{phone},
+            address=#{address},
+            userRole=#{userRole}
+        where id=#{id}
+    </update>
+    <update id="updatePwdById">
+        update smbms_user set userPassword=#{pwd} where id=#{id}
+    </update>
+    <delete id="delUser">
+        delete from smbms_user where id=#{id}
+    </delete>
+
+    <select id="checkUserCode" resultType="java.lang.Integer">
+        select count(id) from smbms_user where userCode=#{userCode}
+    </select>
+    <select id="getUserByUserCodeAndUserPassword" resultType="cn.kgc.smbms.pojo.User">
+        select id, userCode, userName, gender, birthday, phone, address from smbms_user
+        <where>
+            <if test="userCode!=null and userCode!=''">
+               and userCode=#{userCode}
+            </if>
+            <if test="userPassword!=null and userPassword!=''">
+               and userPassword=#{userPassword}
+            </if>
+        </where>
+    </select>
+    <select id="queryUserList" resultType="cn.kgc.smbms.pojo.User">
+        select
+               su.id,
+               userName,
+               userCode,
+               gender,
+               YEAR(now())-YEAR(birthday) AS age,
+               roleName as userRoleName,
+               phone,
+               address
+        from smbms_user su,smbms_role sr
+        where su.userRole=sr.id
+        <if test="userName!=null and userName!=''">
+            and userName like concat('%',#{userName},'%')
+        </if>
+        <if test="roleId!=null and roleId!=''">
+            and userRole=#{roleId}
+        </if>
+    </select>
+    <select id="queryUserById" resultType="cn.kgc.smbms.pojo.User">
+        select su.id, userCode,userName, gender, birthday, phone, address, userRole,
+               sr.roleName as userRoleName
+
+        from smbms_user su,smbms_role sr
+        where su.userRole=sr.id and su.id = #{userId}
+    </select>
+</mapper>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+    <context:component-scan base-package="cn.kgc"/>
+
+    <!--配置视图解析器
+    WEB-INF下面一般放着只有登录以后才能访问的页面。
+    -->
+<!--    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">-->
+<!--        <property name="prefix" value="/WEB-INF/jsp/"/>-->
+<!--        <property name="suffix" value=".jsp"/>-->
+<!--    </bean>-->
+
+    <!--配置多视图解析器-->
+    <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+        <property name="viewResolvers">
+            <list>
+                <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+                    <property name="suffix" value=".jsp"/>
+                    <property name="prefix" value="/WEB-INF/jsp/"/>
+                    <!--spring mvc中的视图解析器会按照order来进行按序解析 值越小的越在前面-->
+                    <property name="order" value="2"/>
+                </bean>
+                <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+                    <!--视图的一个类-->
+                    <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+                    <!--前缀-->
+                    <property name="prefix" value="/statics/html/"/>
+                    <!--后缀-->
+                    <property name="suffix" value=".html"/>
+                    <!--为了防止无法找到页面而写的,html*表示只要逻辑视图名中以html开头的页面,将由此解析器捕获-->
+                    <property name="viewNames" value="html*"/>
+                    <!--解析顺序-->
+                    <property name="order" value="1"/>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <!--设置静态资源的访问-->
+    <mvc:resources mapping="/statics/**" location="/statics/"/>
+    <!--使DispatcherServlet区分请求是资源文件还是mvc的注解-->
+    <mvc:annotation-driven conversion-service="conversionService2">
+        <!--消息转换器-->
+        <mvc:message-converters>
+            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <!--设置接口生产的任何数据都设置成UTF-8  一次配置 永久搞定-->
+                        <value>application/json;charset=utf-8</value>
+                        <value>application/xml;charset=utf-8</value>
+                        <value>application/html;charset=utf-8</value>
+                    </list>
+                </property>
+                <!-- 设置日期输出绑定  日期转换   将从数据库中读取的日期转换一下格式  输出的日期转换-->
+                <property name="objectMapper">
+                    <bean class="cn.kgc.smbms.util.DateMapper"/>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+    <!--设置日期输入绑定-->
+    <bean id="conversionService2" class="org.springframework.context.support.ConversionServiceFactoryBean">
+        <property name="converters">
+            <set>
+                <bean class="cn.kgc.smbms.util.DateConvert"/>
+            </set>
+        </property>
+    </bean>
+    <!--配置全局的异常处理-->
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+                <!--前面是异常的类型  后面是如果发生了此异常前往什么页面-->
+                <prop key="java.lang.RuntimeException">error</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!--配置文件上传-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!--文件最大上传大小  字节-->
+        <property name="maxUploadSize" value="1024000000"/>
+        <!--设置文件上传编码格式-->
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+</beans>
